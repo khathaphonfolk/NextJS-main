@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -15,6 +16,7 @@ export type Member = {
   id: number;
   name: string;
   role: string;
+  imageUrl?: string;
 };
 
 export type Band = {
@@ -30,7 +32,10 @@ type CourseCardProps = {
   band?: Band;
 };
 
-export default function CourseCard({ course, band }: CourseCardProps) {
+export default function CourseCard({
+  course,
+  band,
+}: CourseCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -41,7 +46,11 @@ export default function CourseCard({ course, band }: CourseCardProps) {
         <h2>{course.title}</h2>
         <p>รหัสวิชา: {course.code}</p>
         <p>{course.credits} หน่วยกิต</p>
-        <p>{course.isOpen ? "เปิดลงทะเบียน" : "ปิดลงทะเบียน"}</p>
+        <p>
+          {course.isOpen
+            ? "เปิดลงทะเบียน"
+            : "ปิดลงทะเบียน"}
+        </p>
       </article>
     );
   }
@@ -62,16 +71,17 @@ export default function CourseCard({ course, band }: CourseCardProps) {
               src={band.imageUrl}
               alt={band.name}
               fill
-              style={{ objectFit: "cover", borderRadius: "8px" }}
+              style={{
+                objectFit: "cover",
+                borderRadius: "8px",
+              }}
             />
           </div>
         )}
 
         <h2>{band.name}</h2>
-
         <p>แนวเพลง: {band.genre}</p>
 
-        {/* ปุ่มถูกใจและติดตาม */}
         <div
           style={{
             display: "flex",
@@ -83,7 +93,9 @@ export default function CourseCard({ course, band }: CourseCardProps) {
           <button
             onClick={() => {
               setIsLiked(!isLiked);
-              setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+              setLikeCount(
+                isLiked ? likeCount - 1 : likeCount + 1
+              );
             }}
             style={{
               padding: "8px 15px",
@@ -94,7 +106,8 @@ export default function CourseCard({ course, band }: CourseCardProps) {
               fontSize: "15px",
             }}
           >
-            {isLiked ? "❤️ ถูกใจแล้ว" : "♡ ถูกใจ"} {likeCount}
+            {isLiked ? "❤️ ถูกใจแล้ว" : "♡ ถูกใจ"}{" "}
+            {likeCount}
           </button>
 
           <button
@@ -129,83 +142,71 @@ export default function CourseCard({ course, band }: CourseCardProps) {
               margin: 0,
             }}
           >
-            {band.members.map((m) => {
-              let memberImage = "";
-
-              if (m.id === 101) {
-                memberImage = "/images/bands/member/cocktail-101.jpg";
-              } else if (m.id === 102) {
-                memberImage = "/images/bands/member/cocktail-102.jpg";
-              } else if (m.id === 103) {
-                memberImage = "/images/bands/member/cocktail-103.jpg";
-              } else if (m.id === 104) {
-                memberImage = "/images/bands/member/cocktail-104.jpg";
-              } else if (m.id === 201) {
-                memberImage = "/images/bands/member/slotmachine-201.jpg";
-              } else if (m.id === 202) {
-                memberImage = "/images/bands/member/slotmachine-202.jpg";
-              } else if (m.id === 203) {
-                memberImage = "/images/bands/member/slotmachine-203.jpg";
-              } else if (m.id === 301) {
-                memberImage = "/images/bands/member/tillybirds-301.jpg";
-              } else if (m.id === 302) {
-                memberImage = "/images/bands/member/tillybirds-302.jpg";
-              } else if (m.id === 303) {
-                memberImage = "/images/bands/member/tillybirds-303.jpg";
-              }
-
-              return (
-                <li
-                  key={m.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    marginBottom: "12px",
-                    padding: "8px",
-                    borderRadius: "8px",
-                    background: "#f8f8f8",
-                  }}
-                >
-                  {/* รูปสมาชิก */}
-                  {memberImage && (
-                    <Image
-                      src={memberImage}
-                      alt={m.name}
-                      width={60}
-                      height={60}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "cover",
-                        borderRadius: "50%",
-                      }}
-                    />
-                  )}
-
-                  {/* ชื่อและตำแหน่ง */}
-                  <div>
-                    <div
-                      style={{
-                        fontWeight: "600",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {m.name}
-                    </div>
-
-                    <div
-                      style={{
-                        color: "#666",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {m.role}
-                    </div>
+            {band.members.map((member) => (
+              <li
+                key={member.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                  padding: "8px",
+                  borderRadius: "8px",
+                  background: "#f8f8f8",
+                }}
+              >
+                {/* ใช้ imageUrl จากข้อมูลสมาชิกโดยตรง */}
+                {member.imageUrl ? (
+                  <Image
+                    src={member.imageUrl}
+                    alt={member.name}
+                    width={60}
+                    height={60}
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      borderRadius: "50%",
+                      background: "#ddd",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    🎤
                   </div>
-                </li>
-              );
-            })}
+                )}
+
+                <div>
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {member.name}
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#666",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {member.role}
+                  </div>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
       </article>

@@ -1,5 +1,4 @@
-import CourseCard from "@/components/CourseCard";
-import { Band } from "@/type/band";
+import CourseCard, { Band } from "@/components/CourseCard";
 
 const favoriteBands: Band[] = [
   {
