@@ -11,467 +11,122 @@ type Game = {
 };
 
 const initialGames: Game[] = [
-  {
-    id: 1,
-    name: "ROV",
-    platform: "Mobile",
-    hours: 200,
-    status: "กำลังเล่น",
-  },
-  {
-    id: 2,
-    name: "Free Fire",
-    platform: "Mobile",
-    hours: 150,
-    status: "กำลังเล่น",
-  },
-  {
-    id: 3,
-    name: "Minecraft",
-    platform: "PC / Mobile",
-    hours: 300,
-    status: "กำลังเล่น",
-  },
-  {
-    id: 4,
-    name: "Genshin Impact",
-    platform: "PC / Mobile",
-    hours: 250,
-    status: "กำลังเล่น",
-  },
-  {
-    id: 5,
-    name: "Valorant",
-    platform: "PC",
-    hours: 180,
-    status: "เล่นจบแล้ว",
-  },
+  { id: 1, name: "ROV", platform: "Mobile", hours: 200, status: "กำลังเล่น" },
+  { id: 2, name: "Free Fire", platform: "Mobile", hours: 150, status: "กำลังเล่น" },
+  { id: 3, name: "Minecraft", platform: "PC / Mobile", hours: 300, status: "กำลังเล่น" },
+  { id: 4, name: "Genshin Impact", platform: "PC / Mobile", hours: 250, status: "กำลังเล่น" },
+  { id: 5, name: "Valorant", platform: "PC", hours: 180, status: "เล่นจบแล้ว" },
 ];
 
 export default function GamesPage() {
   const [games, setGames] = useState<Game[]>([]);
-  const [name, setName] = useState("");
-  const [platform, setPlatform] = useState("");
-  const [hours, setHours] = useState("");
-  const [status, setStatus] = useState("ยังไม่เริ่ม");
-
+  const [form, setForm] = useState({ name: "", platform: "", hours: "", status: "ยังไม่เริ่ม" });
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // โหลดข้อมูลเกม
+  // โหลดและบันทึกข้อมูล localStorage
   useEffect(() => {
-    const savedGames = localStorage.getItem("games");
-
-    if (savedGames) {
-      setGames(JSON.parse(savedGames));
-    } else {
+    const saved = localStorage.getItem("games");
+    if (saved) setGames(JSON.parse(saved));
+    else {
       setGames(initialGames);
       localStorage.setItem("games", JSON.stringify(initialGames));
     }
   }, []);
 
-  // บันทึกข้อมูลเกม
   useEffect(() => {
-    if (games.length > 0) {
-      localStorage.setItem("games", JSON.stringify(games));
-    }
+    if (games.length > 0) localStorage.setItem("games", JSON.stringify(games));
   }, [games]);
 
-  // เพิ่ม / แก้ไขเกม
+  // จัดการฟอร์ม
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.name || !form.platform || !form.hours) return alert("กรุณากรอกข้อมูลให้ครบ");
 
-    if (!name || !platform || !hours) {
-      alert("กรุณากรอกข้อมูลให้ครบ");
-      return;
-    }
-
-    if (editingId !== null) {
-      setGames(
-        games.map((game) =>
-          game.id === editingId
-            ? {
-                ...game,
-                name,
-                platform,
-                hours: Number(hours),
-                status,
-              }
-            : game
-        )
-      );
-
+    if (editingId) {
+      setGames(games.map(g => g.id === editingId ? { ...g, ...form, hours: Number(form.hours) } : g));
       setEditingId(null);
     } else {
-      const newGame: Game = {
-        id: Date.now(),
-        name,
-        platform,
-        hours: Number(hours),
-        status,
-      };
-
-      setGames([...games, newGame]);
+      setGames([...games, { id: Date.now(), ...form, hours: Number(form.hours) }]);
     }
-
     clearForm();
   };
 
-  // ลบเกม
-  const handleDelete = (id: number) => {
-    const confirmDelete = confirm("ต้องการลบเกมนี้หรือไม่?");
-
-    if (confirmDelete) {
-      setGames(games.filter((game) => game.id !== id));
-    }
-  };
-
-  // แก้ไขเกม
   const handleEdit = (game: Game) => {
     setEditingId(game.id);
-    setName(game.name);
-    setPlatform(game.platform);
-    setHours(String(game.hours));
-    setStatus(game.status);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setForm({ name: game.name, platform: game.platform, hours: String(game.hours), status: game.status });
   };
 
-  // ล้างข้อมูลในฟอร์ม
+  const handleDelete = (id: number) => {
+    if (confirm("ต้องการลบเกมนี้หรือไม่?")) setGames(games.filter(g => g.id !== id));
+  };
+
   const clearForm = () => {
-    setName("");
-    setPlatform("");
-    setHours("");
-    setStatus("ยังไม่เริ่ม");
+    setForm({ name: "", platform: "", hours: "", status: "ยังไม่เริ่ม" });
     setEditingId(null);
   };
 
   return (
-    <main className="games-page">
-      <div className="game-container">
+    <main className="container">
+      <h1>🎮 ระบบบันทึกเกม (Game Tracker)</h1>
 
-        {/* ไอคอนเกม */}
-        <div className="game-icon">🎮</div>
+      {/* ฟอร์มเพิ่ม/แก้ไข */}
+      <form onSubmit={handleSubmit} className="form-card">
+        <h3>{editingId ? "แก้ไขรายการเกม" : "เพิ่มเกมใหม่"}</h3>
+        
+        <input name="name" placeholder="ชื่อเกม" value={form.name} onChange={handleChange} />
+        <input name="platform" placeholder="แพลตฟอร์ม (เช่น PC, Mobile)" value={form.platform} onChange={handleChange} />
+        <input name="hours" type="number" placeholder="ชั่วโมงที่เล่น" value={form.hours} onChange={handleChange} />
+        
+        <select name="status" value={form.status} onChange={handleChange}>
+          <option value="ยังไม่เริ่ม">ยังไม่เริ่ม</option>
+          <option value="กำลังเล่น">กำลังเล่น</option>
+          <option value="เล่นจบแล้ว">เล่นจบแล้ว</option>
+        </select>
 
-        {/* ฟอร์มเพิ่มเกม */}
-        <section className="game-form">
+        <div className="btn-group">
+          <button type="submit" className="btn-primary">{editingId ? "อัปเดต" : "เพิ่มข้อมูล"}</button>
+          {editingId && <button type="button" onClick={clearForm} className="btn-secondary">ยกเลิก</button>}
+        </div>
+      </form>
 
-          <h1>
-            {editingId !== null ? "แก้ไขเกม" : "เพิ่มเกมใหม่"}
-          </h1>
-
-          <form onSubmit={handleSubmit}>
-
-            <label>ชื่อเกม</label>
-
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-
-            <label>แพลตฟอร์ม</label>
-
-            <input
-              type="text"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              placeholder="เช่น PC, PS5, Switch"
-            />
-
-            <label>ชั่วโมงที่คาดว่าจะเล่น</label>
-
-            <input
-              type="number"
-              min="0"
-              value={hours}
-              onChange={(e) => setHours(e.target.value)}
-            />
-
-            <label>สถานะ</label>
-
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="ยังไม่เริ่ม">
-                ยังไม่เริ่ม
-              </option>
-
-              <option value="กำลังเล่น">
-                กำลังเล่น
-              </option>
-
-              <option value="เล่นจบแล้ว">
-                เล่นจบแล้ว
-              </option>
-            </select>
-
-            <div className="form-buttons">
-
-              <button
-                type="submit"
-                className="save-button"
-              >
-                {editingId !== null
-                  ? "บันทึกการแก้ไข"
-                  : "บันทึก"}
-              </button>
-
-              {editingId !== null && (
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={clearForm}
-                >
-                  ยกเลิก
-                </button>
-              )}
-
+      {/* รายการเกม */}
+      <div className="list">
+        {games.map((g) => (
+          <div key={g.id} className="card">
+            <div>
+              <h4>{g.name}</h4>
+              <p>{g.platform} • {g.hours} ชม. • <span className="status">{g.status}</span></p>
             </div>
-
-          </form>
-        </section>
-
-        {/* รายการเกม */}
-        <section className="game-list">
-
-          {games.map((game) => (
-            <div
-              className="game-card"
-              key={game.id}
-            >
-
-              <div className="game-info">
-
-                <h2>{game.name}</h2>
-
-                <p>
-                  {game.platform} • {game.hours} ชม. •{" "}
-
-                  <span
-                    className={
-                      game.status === "กำลังเล่น"
-                        ? "status-playing"
-                        : game.status === "เล่นจบแล้ว"
-                        ? "status-finished"
-                        : "status-not-started"
-                    }
-                  >
-                    {game.status}
-                  </span>
-
-                </p>
-
-              </div>
-
-              <div className="game-actions">
-
-                <button
-                  className="edit-button"
-                  onClick={() => handleEdit(game)}
-                >
-                  แก้ไข
-                </button>
-
-                <button
-                  className="delete-button"
-                  onClick={() => handleDelete(game.id)}
-                >
-                  ลบ
-                </button>
-
-              </div>
-
+            <div className="btn-group">
+              <button onClick={() => handleEdit(g)} className="btn-edit">แก้ไข</button>
+              <button onClick={() => handleDelete(g.id)} className="btn-delete">ลบ</button>
             </div>
-          ))}
-
-        </section>
-
+          </div>
+        ))}
       </div>
 
       <style jsx>{`
-
-        .games-page {
-          min-height: 100vh;
-          background: white;
-          padding: 30px 20px 60px;
-        }
-
-        .game-container {
-          width: 100%;
-          max-width: 620px;
-          margin: 0 auto;
-        }
-
-        .game-icon {
-          font-size: 30px;
-          margin-bottom: 18px;
-        }
-
-        .game-form {
-          background: #11182c;
-          border-radius: 8px;
-          padding: 16px;
-          color: white;
-          margin-bottom: 20px;
-        }
-
-        .game-form h1 {
-          font-size: 20px;
-          margin: 0 0 15px;
-        }
-
-        .game-form label {
-          display: block;
-          font-size: 13px;
-          font-weight: bold;
-          margin: 12px 0 6px;
-        }
-
-        .game-form input,
-        .game-form select {
-          width: 100%;
-          box-sizing: border-box;
-          background: #202d43;
-          border: 1px solid #33415c;
-          color: white;
-          padding: 9px;
-          border-radius: 4px;
-          font-size: 14px;
-          outline: none;
-        }
-
-        .game-form input:focus,
-        .game-form select:focus {
-          border-color: #9b22ff;
-        }
-
-        .form-buttons {
-          display: flex;
-          gap: 8px;
-          margin-top: 16px;
-        }
-
-        .save-button {
-          background: #9b16ff;
-          color: white;
-          border: none;
-          padding: 9px 16px;
-          border-radius: 4px;
-          font-weight: bold;
-          cursor: pointer;
-        }
-
-        .save-button:hover {
-          background: #7d00d8;
-        }
-
-        .cancel-button {
-          background: #555;
-          color: white;
-          border: none;
-          padding: 9px 16px;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .game-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .game-card {
-          background: #202d43;
-          border-radius: 8px;
-          padding: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-        }
-
-        .game-info h2 {
-          color: #c56cff;
-          font-size: 18px;
-          margin: 0 0 5px;
-        }
-
-        .game-info p {
-          color: #8fa3c2;
-          font-size: 13px;
-          margin: 0;
-        }
-
-        .status-playing {
-          color: #ffc400;
-        }
-
-        .status-finished {
-          color: #00d084;
-        }
-
-        .status-not-started {
-          color: #aaa;
-        }
-
-        .game-actions {
-          display: flex;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-
-        .edit-button {
-          background: #ff9800;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          padding: 8px 12px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .delete-button {
-          background: #ff1744;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          padding: 8px 12px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .edit-button:hover {
-          background: #e68900;
-        }
-
-        .delete-button:hover {
-          background: #d50032;
-        }
-
-        @media (max-width: 600px) {
-
-          .game-card {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .game-actions {
-            width: 100%;
-          }
-
-          .edit-button,
-          .delete-button {
-            flex: 1;
-          }
-
-        }
-
+        .container { max-width: 500px; margin: 40px auto; padding: 0 16px; font-family: sans-serif; }
+        h1 { font-size: 20px; text-align: center; margin-bottom: 20px; }
+        .form-card { background: #f9f9f9; padding: 16px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .form-card h3 { margin-top: 0; font-size: 16px; }
+        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 8px; }
+        button { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #0070f3; color: white; flex: 1; }
+        .btn-secondary { background: #888; color: white; }
+        .btn-edit { background: #f5a623; color: white; }
+        .btn-delete { background: #e00; color: white; }
+        .list { display: flex; flex-direction: column; gap: 10px; }
+        .card { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #eee; border-radius: 6px; background: white; }
+        .card h4 { margin: 0 0 4px; font-size: 16px; }
+        .card p { margin: 0; font-size: 13px; color: #666; }
+        .status { font-weight: bold; color: #333; }
       `}</style>
-
     </main>
   );
 }
